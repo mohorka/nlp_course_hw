@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -47,3 +48,14 @@ def write_output(content: List[Dict[str, Optional[str]]], path_to_output: str) -
     checkoutput_exists(path_to_output)
     df = pd.DataFrame.from_dict(content)
     df.to_csv(path_to_output)
+
+
+def save_preprocessed_data(content: List[List[str]], output_path: str) -> None:
+    """Save data to .json
+
+    Args:
+        content (List[List[str]]): List with preprocessed data.
+        output_path (str): Output path.
+    """
+    with open(output_path, "w") as f:
+        json.dump(content, f)

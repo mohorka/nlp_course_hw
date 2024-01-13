@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "NLP course homeworks"
 authors = ["Victoria <victoria2000dzuba@gmail.com>"]
 readme = "README.md"
-packages = [{include = "utils"}, {include = "task1"}]
+packages = [{include = "utils"}, {include = "task1"},{include = "task2"} ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -13,6 +13,8 @@ torch = "^2.1.2"
 transformers = "^4.36.2"
 sentence-transformers = "^2.2.2"
 yargy = "^0.16.0"
+gensim = "^4.3.2"
+scikit-learn = "^1.3.2"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^7.0.0"
@@ -21,6 +23,7 @@ black = "^23.12.1"
 
 [tool.poetry.scripts]
 parser = "task1.parser:main"
+dummy_classify = "task2.dummy_classify:main"
 
 [build-system]
 requires = ["poetry-core"]

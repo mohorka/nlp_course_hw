@@ -1,14 +1,14 @@
 import logging
-from typing import Dict, List
+from typing import Dict, List, Any
 
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
-from task2.word2vec import load_trained_model
+from task2.vectorizers import load_trained_w2v, load_trained_d2v
 
 
-def prepare_train_test(
+def prepare_train_test_via_w2v(
     preprocessed: List[List[str]],
     labels: List[int],
     word2vec_path: str,
@@ -29,7 +29,7 @@ def prepare_train_test(
     Returns:
         Tuple[list, list, list, list]: Data splitted by train and test.
     """
-    w2v_model = load_trained_model(word2vec_path)
+    w2v_model = load_trained_w2v(word2vec_path)
     vectorized_content = []
     for article in preprocessed:
         article_vector = []
@@ -40,6 +40,39 @@ def prepare_train_test(
             except KeyError:
                 logging.warning(f"{word} was not found by word2vec!")
         article_vector = np.mean(article_vector, axis=0)
+        vectorized_content.append(article_vector)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        vectorized_content, labels, test_size=test_size, shuffle=shuffle
+    )
+    return X_train, X_test, y_train, y_test
+
+
+def prepare_train_test_via_d2v(
+    preprocessed: List[List[str]],
+    labels: List[int],
+    doc2vec_path: str,
+    test_size: float = 0.3,
+    shuffle: bool = True,
+):
+    """Prepate train-test data with vectorizing via doc2vec.
+
+    Args:
+        preprocessed (List[List[str]]): List of preprocessed (tokenized) data.
+        labels (List[int]): List of labels ids.
+        doc2vec_path (str): Path to doc2vec model.
+        test_size (float, optional): Represent the proportion of the dataset
+            to include in the test split . Defaults to 0.3.
+        shuffle (bool, optional): Whether or not to shuffle the data before splitting.
+            Defaults to True.
+
+    Returns:
+        Tuple[list, list, list, list]: Data splitted by train and test.
+    """
+    d2v_model = load_trained_d2v(doc2vec_path)
+    vectorized_content = []
+    for article in preprocessed:
+        article_vector = d2v_model.infer_vector(article)
         vectorized_content.append(article_vector)
 
     X_train, X_test, y_train, y_test = train_test_split(

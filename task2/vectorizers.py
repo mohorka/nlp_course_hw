@@ -3,9 +3,10 @@ import sys
 from typing import List
 
 import nltk
-from gensim.models import Word2Vec
+from gensim.models import Word2Vec, doc2vec
 from nltk.corpus import stopwords
 from pymorphy2 import MorphAnalyzer
+
 
 from utils.pymorphy_fix import pymorphy2_311_hotfix
 
@@ -33,11 +34,35 @@ def preprocess(article: str) -> List[str]:
     article = article.lower()
     words = re.findall(r"\b\w+\b", article)
     cleaned_words = [word for word in words if word not in stopwords_ru]
-    tokens = [morph.normal_forms(word)[0] for word in cleaned_words]
+    remove_digits = [word for word in cleaned_words if not word.isdigit()]
+    tokens = [morph.normal_forms(word)[0] for word in remove_digits]
     remove_shorts = [token for token in tokens if len(token) > 2]
-    remove_digits = [token for token in remove_shorts if not token.isdigit()]
-    return remove_digits
+    return remove_shorts 
 
+def prepare_tagged_docs(tokenized_content: List[List[str]]):
+    """Prepare text data to Doc2Vec format.
+
+    Args:
+        tokenized_content (List[List[str]]): Tokenized texts.
+
+    Yields:
+        Generator: Generator with tagged documents.
+    """    
+    for idx, article in enumerate(tokenized_content):
+        yield doc2vec.TaggedDocument(article, [idx])
+
+
+def get_doc2vec(tagged_docs: List[doc2vec.TaggedDocument], output_model_path: str = ""):
+    model = doc2vec.Doc2Vec(vector_size=50,  
+                window=2,        
+                min_count=1,      
+                workers=4,       
+                epochs=30)   
+    model.build_vocab(tagged_docs)  
+    model.train(tagged_docs, total_examples=model.corpus_count, epochs=model.epochs)
+    if output_model_path != "":
+        model.save(output_model_path)
+    return model
 
 def get_word2vec(tokenized: List[List[str]], output_model_path: str = ""):
     """Train word2vec model.
@@ -56,7 +81,7 @@ def get_word2vec(tokenized: List[List[str]], output_model_path: str = ""):
     return model
 
 
-def load_trained_model(model_path: str):
+def load_trained_w2v(model_path: str):
     """Load trained w2v model.
 
     Args:
@@ -66,3 +91,15 @@ def load_trained_model(model_path: str):
         model: Loaded w2v model.
     """
     return Word2Vec.load(model_path)
+
+
+def load_trained_d2v(model_path: str):
+    """Load trained d2v model.
+
+    Args:
+        model_path (str): Path to trained model.
+
+    Returns:
+        model: Loaded d2v model.
+    """
+    return doc2vec.Doc2Vec.load(model_path)

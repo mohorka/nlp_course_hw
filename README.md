@@ -24,3 +24,13 @@ Second script uses as features excrator doc2vec model. Again, you can use your p
 `docs_classify -i path_to_input_file.txt --path_to_save_d2v path_to_fresh_d2v`
 
 Both scripts perform around 0.81 accuracy on given `news.txt` data.
+
+## Task3: text generation with casual and masked LM.
+To solve this problem, the following strategy was chosen: 
+1. Process given sentence with LLM (used `TinyLlama/TinyLlama-1.1B-Chat-v1.0`) with instruction prompt (see notebook for details).
+Actually, it is recommended to use `torch.bfloat16` model, but unfortunatelly, this is not supported for ARM, so `torch.float16` is used.
+1. Naively post-process LLM output for receive generated paraphrased sentences.
+2. Randomly masked a word in each paraphrased sentence.
+3. Feed masked sentence to mask-LM (used `distilroberta-base`), take first two answers for each masked sentence.
+
+Notebook with solution is in `task3` directory.
